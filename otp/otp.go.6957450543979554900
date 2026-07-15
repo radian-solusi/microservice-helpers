@@ -1,0 +1,124 @@
+package otp
+
+import (
+	"crypto/rand"
+	"errors"
+	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/o1egl/paseto/v2"
+	"github.com/pquerna/otp/totp"
+
+	"github.com/radian-solusi/go-helpers/cryptoutil"
+)
+
+const preAuthTokenPrefix = "otp"
+
+// GenerateTOTPSecret creates a new TOTP secret and its otpauth:// URL for the
+// given issuer and account. Issuer and account must be non-empty.
+func GenerateTOTPSecret(issuer, accountName string) (secret, otpauthURL string, err error) {
+	if issuer == "" {
+		return "", "", errors.New("issuer is required")
+	}
+	if accountName == "" {
+		return "", "", errors.New("account name is required")
+	}
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      issuer,
+		AccountName: accountName,
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("generate TOTP secret: %w", err)
+	}
+	return key.Secret(), key.URL(), nil
+}
+
+// VerifyTOTPCode reports whether code is valid for secret. Empty inputs return
+// false.
+func VerifyTOTPCode(secret, code string) bool {
+	if secret == "" || code == "" {
+		return false
+	}
+	return totp.Validate(code, secret)
+}
+
+// GenerateNumericOTP returns a numeric OTP of the given length using
+// crypto/rand for each digit. Length must be positive.
+func GenerateNumericOTP(length int) (string, error) {
+	if length <= 0 {
+		return "", errors.New("otp length must be > 0")
+	}
+	max := big.NewInt(10)
+	var sb strings.Builder
+	for i := 0; i < length; i++ {
+		n, err := rand.Int(rand.Reader, max)
+		if err != nil {
+			return "", fmt.Errorf("generate numeric otp: %w", err)
+		}
+		sb.WriteString(n.String())
+	}
+	return sb.String(), nil
+}
+
+// GeneratePreAuthToken returns a short-lived PASETO v2 local token scoped to a
+// 2FA challenge. Payload format: "otp:<userID>:<unix-expiry>", legacy-encrypted
+// with key before being wrapped by PASETO. key must be 32 bytes, userID
+// non-empty, and ttl positive.
+func GeneratePreAuthToken(userID string, key []byte, now time.Time, ttl time.Duration) (string, error) {
+	if userID == "" {
+		return "", errors.New("user id is required")
+	}
+	if len(key) != 32 {
+		return "", errors.New("key must be 32 bytes")
+	}
+	if ttl <= 0 {
+		return "", errors.New("ttl must be positive")
+	}
+	exp := now.Add(ttl).Unix()
+	payload := fmt.Sprintf("%s:%s:%d", preAuthTokenPrefix, userID, exp)
+
+	encryptedPayload, err := cryptoutil.EncryptLegacyCBC([]byte(payload), key)
+	if err != nil {
+		return "", fmt.Errorf("encrypt pre-auth payload: %w", err)
+	}
+	token, err := paseto.NewV2().Encrypt(key, encryptedPayload, nil)
+	if err != nil {
+		return "", fmt.Errorf("encode pre-auth token: %w", err)
+	}
+	return token, nil
+}
+
+// VerifyPreAuthToken decrypts and validates a pre-auth token, returning the user
+// id. It fails when the token is malformed, uses the wrong key, or has expired
+// (now.Unix() > expiry). key must be 32 bytes.
+func VerifyPreAuthToken(token string, key []byte, now time.Time) (userID string, err error) {
+	if token == "" {
+		return "", errors.New("pre-auth token is required")
+	}
+	if len(key) != 32 {
+		return "", errors.New("key must be 32 bytes")
+	}
+	var encryptedPayload string
+	if err := paseto.NewV2().Decrypt(token, key, &encryptedPayload, nil); err != nil {
+		return "", fmt.Errorf("invalid pre-auth token: %w", err)
+	}
+	decrypted, err := cryptoutil.DecryptLegacyCBC(encryptedPayload, key)
+	if err != nil {
+		return "", fmt.Errorf("invalid pre-auth token: %w", err)
+	}
+	parts := strings.Split(string(decrypted), ":")
+	if len(parts) != 3 || parts[0] != preAuthTokenPrefix {
+		return "", errors.New("invalid pre-auth token payload")
+	}
+	exp, err := strconv.ParseInt(parts[2], 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid pre-auth token expiry: %w", err)
+	}
+	if now.Unix() > exp {
+		return "", errors.New("pre-auth token has expired")
+	}
+	return parts[1], nil
+}

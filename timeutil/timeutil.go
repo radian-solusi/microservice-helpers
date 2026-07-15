@@ -1,0 +1,51 @@
+package timeutil
+
+import "time"
+
+const (
+	FormatDateTime     = "2006-01-02 15:04:05"
+	FormatDateTimeMS   = "2006-01-02 15:04:05.000"
+	FormatDateTimeISO  = "2006-01-02T15:04:05Z07:00"
+	FormatDate         = "2006-01-02"
+	FormatDateTimeFile = "20060102150405"
+)
+
+// LoadLocation wraps time.LoadLocation, returning an error when name is
+// unknown.
+func LoadLocation(name string) (*time.Location, error) {
+	return time.LoadLocation(name)
+}
+
+// Parse wraps time.Parse, returning an error on invalid input.
+func Parse(layout, value string) (time.Time, error) {
+	return time.Parse(layout, value)
+}
+
+// Format wraps time.Time.Format.
+func Format(t time.Time, layout string) string {
+	return t.Format(layout)
+}
+
+// UnixToTime converts a Unix timestamp (seconds since epoch) to time.Time.
+func UnixToTime(sec int64) time.Time {
+	return time.Unix(sec, 0)
+}
+
+// SecondsToDuration converts seconds to time.Duration.
+func SecondsToDuration(sec int) time.Duration {
+	return time.Duration(sec) * time.Second
+}
+
+// DurationToSeconds converts a duration to integer seconds.
+func DurationToSeconds(d time.Duration) int {
+	return int(d.Seconds())
+}
+
+// UnixToString formats a Unix timestamp using the given location and layout. A
+// nil location defaults to UTC.
+func UnixToString(seconds int64, location *time.Location, layout string) string {
+	if location == nil {
+		location = time.UTC
+	}
+	return time.Unix(seconds, 0).In(location).Format(layout)
+}

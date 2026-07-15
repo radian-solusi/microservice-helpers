@@ -1,0 +1,140 @@
+package cryptoutil
+
+import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
+	"testing"
+)
+
+var testKey = []byte("01234567890123456789012345678901") // 32 bytes
+
+func legacyFixture(plaintext, key, iv []byte) string {
+	padding := aes.BlockSize - len(plaintext)%aes.BlockSize
+	padded := append(append([]byte(nil), plaintext...), make([]byte, padding)...)
+	block, _ := aes.NewCipher(key)
+	ciphertext := make([]byte, len(padded))
+	cipher.NewCBCEncrypter(block, iv).CryptBlocks(ciphertext, padded)
+	inner := base64.StdEncoding.EncodeToString(ciphertext)
+	return base64.StdEncoding.EncodeToString(append(append([]byte(nil), iv...), inner...))
+}
+
+func TestLegacyCBCRoundTrip(t *testing.T) {
+	cases := [][]byte{
+		[]byte(""),
+		[]byte("hello"),
+		[]byte("0123456789abcdef"), // exactly one block
+		[]byte("this is a longer plaintext that spans blocks"),
+	}
+	for _, pt := range cases {
+		enc, err := EncryptLegacyCBC(pt, testKey)
+		if err != nil {
+			t.Fatalf("encrypt %q: %v", pt, err)
+		}
+		dec, err := DecryptLegacyCBC(enc, testKey)
+		if err != nil {
+			t.Fatalf("decrypt %q: %v", pt, err)
+		}
+		if !bytes.Equal(dec, pt) {
+			t.Errorf("round-trip mismatch: got %q, want %q", dec, pt)
+		}
+	}
+}
+
+func TestLegacyFixtureDecrypt(t *testing.T) {
+	iv := []byte("ABCDEFGHIJKLMNOP") // fixed 16 bytes
+	pt := []byte("legacy zero-padded")
+	enc := legacyFixture(pt, testKey, iv)
+	dec, err := DecryptLegacyCBC(enc, testKey)
+	if err != nil {
+		t.Fatalf("decrypt fixture: %v", err)
+	}
+	if !bytes.Equal(dec, pt) {
+		t.Errorf("fixture mismatch: got %q, want %q", dec, pt)
+	}
+}
+
+func TestLegacyCBCKeyLengths(t *testing.T) {
+	for _, n := range []int{0, 16, 31, 33} {
+		key := make([]byte, n)
+		if _, err := EncryptLegacyCBC([]byte("x"), key); err == nil {
+			t.Errorf("encrypt key len %d: expected error", n)
+		}
+		if _, err := DecryptLegacyCBC("AAAA", key); err == nil {
+			t.Errorf("decrypt key len %d: expected error", n)
+		}
+	}
+}
+
+func TestDecryptLegacyCBCInvalidInputs(t *testing.T) {
+	// invalid outer base64
+	if _, err := DecryptLegacyCBC("!!!not base64!!!", testKey); err == nil {
+		t.Error("expected error for invalid outer base64")
+	}
+	// raw shorter than IV
+	short := base64.StdEncoding.EncodeToString([]byte("tooshort"))
+	if _, err := DecryptLegacyCBC(short, testKey); err == nil {
+		t.Error("expected error for short ciphertext")
+	}
+	// invalid inner base64
+	badInner := base64.StdEncoding.EncodeToString(append([]byte("ABCDEFGHIJKLMNOP"), []byte("!!!!")...))
+	if _, err := DecryptLegacyCBC(badInner, testKey); err == nil {
+		t.Error("expected error for invalid inner base64")
+	}
+	// inner not block-aligned
+	notAligned := base64.StdEncoding.EncodeToString(
+		append([]byte("ABCDEFGHIJKLMNOP"), []byte(base64.StdEncoding.EncodeToString([]byte("short")))...))
+	if _, err := DecryptLegacyCBC(notAligned, testKey); err == nil {
+		t.Error("expected error for non-block-aligned inner")
+	}
+}
+
+func TestDecryptLegacyCBCTamperedNoPanic(t *testing.T) {
+	enc, _ := EncryptLegacyCBC([]byte("some data"), testKey)
+	tampered := enc[:len(enc)-2] + "AA"
+	// must not panic; error or garbage both acceptable
+	_, _ = DecryptLegacyCBC(tampered, testKey)
+}
+
+func TestPasswordHashVerify(t *testing.T) {
+	hash, err := HashPassword("s3cret!")
+	if err != nil {
+		t.Fatalf("hash: %v", err)
+	}
+	if !VerifyPassword(hash, "s3cret!") {
+		t.Error("expected match")
+	}
+	if VerifyPassword(hash, "wrong") {
+		t.Error("expected mismatch")
+	}
+}
+
+func TestGenerateSecureToken(t *testing.T) {
+	if _, err := GenerateSecureToken(-1); err == nil {
+		t.Error("expected error for negative length")
+	}
+	a, err := GenerateSecureToken(32)
+	if err != nil || a == "" {
+		t.Fatalf("token a: %v %q", err, a)
+	}
+	b, _ := GenerateSecureToken(32)
+	if a == b {
+		t.Error("expected distinct tokens")
+	}
+}
+
+func TestChecksum(t *testing.T) {
+	data := map[string]int{"a": 1, "b": 2}
+	c1, err := Checksum(data)
+	if err != nil {
+		t.Fatalf("checksum: %v", err)
+	}
+	c2, _ := Checksum(data)
+	if c1 != c2 {
+		t.Error("expected deterministic checksum")
+	}
+	if _, err := Checksum(make(chan int)); err == nil {
+		t.Error("expected error for unsupported JSON value")
+	}
+}
