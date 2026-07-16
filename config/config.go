@@ -17,10 +17,12 @@ const (
 )
 
 type SftpConfig struct {
-	Host     string `toml:"host"`
-	Port     int    `toml:"port"`
-	User     string `toml:"user"`
-	Password string `toml:"password"`
+	Host           string `toml:"host"`
+	Port           int    `toml:"port"`
+	User           string `toml:"user"`
+	Password       string `toml:"password"`
+	KnownHostsFile string `toml:"known_hosts_file"`
+	HostKey        string `toml:"host_key"`
 }
 
 type GPubSubConfig struct {
@@ -61,6 +63,7 @@ type S3Config struct {
 	SecretAccessKey string     `toml:"secret_access_key"`
 	UseSSL          bool       `toml:"use_ssl"`
 	BucketName      string     `toml:"bucket_name"`
+	LocalPath       string     `toml:"local_path"`
 }
 
 type AppConfig struct {
