@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	helperconfig "github.com/radian-solusi/go-helpers/config"
+	helperconfig "github.com/radian-solusi/microservice-helpers/config"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"

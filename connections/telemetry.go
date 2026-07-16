@@ -7,7 +7,7 @@ import (
 	"os"
 
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
-	helperconfig "github.com/radian-solusi/go-helpers/config"
+	helperconfig "github.com/radian-solusi/microservice-helpers/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"

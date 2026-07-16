@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	helperconfig "github.com/radian-solusi/go-helpers/config"
+	helperconfig "github.com/radian-solusi/microservice-helpers/config"
 )
 
 func TestNewRedisOptions(t *testing.T) {

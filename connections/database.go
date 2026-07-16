@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	helperconfig "github.com/radian-solusi/go-helpers/config"
+	helperconfig "github.com/radian-solusi/microservice-helpers/config"
 	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"

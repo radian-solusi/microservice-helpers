@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/pkg/sftp"
-	helperconfig "github.com/radian-solusi/go-helpers/config"
+	helperconfig "github.com/radian-solusi/microservice-helpers/config"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
 )

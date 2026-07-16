@@ -3,13 +3,13 @@ package helpers
 import (
 	"time"
 
-	"github.com/radian-solusi/go-helpers/config"
-	"github.com/radian-solusi/go-helpers/cryptoutil"
-	"github.com/radian-solusi/go-helpers/otp"
-	"github.com/radian-solusi/go-helpers/phone"
-	"github.com/radian-solusi/go-helpers/strutil"
-	"github.com/radian-solusi/go-helpers/timeutil"
-	"github.com/radian-solusi/go-helpers/validate"
+	"github.com/radian-solusi/microservice-helpers/config"
+	"github.com/radian-solusi/microservice-helpers/cryptoutil"
+	"github.com/radian-solusi/microservice-helpers/otp"
+	"github.com/radian-solusi/microservice-helpers/phone"
+	"github.com/radian-solusi/microservice-helpers/strutil"
+	"github.com/radian-solusi/microservice-helpers/timeutil"
+	"github.com/radian-solusi/microservice-helpers/validate"
 )
 
 // --- config ---

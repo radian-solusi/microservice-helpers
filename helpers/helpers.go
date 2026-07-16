@@ -3,9 +3,9 @@ package helpers
 import (
 	"os"
 
-	"github.com/radian-solusi/go-helpers/connections"
-	"github.com/radian-solusi/go-helpers/timeutil"
-	"github.com/radian-solusi/go-helpers/web"
+	"github.com/radian-solusi/microservice-helpers/connections"
+	"github.com/radian-solusi/microservice-helpers/timeutil"
+	"github.com/radian-solusi/microservice-helpers/web"
 )
 
 var _ HelperInterface = (*Helpers)(nil)

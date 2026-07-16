@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/radian-solusi/go-helpers/config"
-	"github.com/radian-solusi/go-helpers/connections"
-	"github.com/radian-solusi/go-helpers/timeutil"
-	"github.com/radian-solusi/go-helpers/web"
+	"github.com/radian-solusi/microservice-helpers/config"
+	"github.com/radian-solusi/microservice-helpers/connections"
+	"github.com/radian-solusi/microservice-helpers/timeutil"
+	"github.com/radian-solusi/microservice-helpers/web"
 )
 
 // HelperInterface mirrors the investor service's helper surface with module

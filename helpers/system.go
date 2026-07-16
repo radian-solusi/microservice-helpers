@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/radian-solusi/go-helpers/connections"
+	"github.com/radian-solusi/microservice-helpers/connections"
 )
 
 func (h *Helpers) InitializeSystem() error {

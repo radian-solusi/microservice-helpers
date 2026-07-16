@@ -3,10 +3,10 @@ package helpers
 import (
 	"sync"
 
-	"github.com/radian-solusi/go-helpers/config"
-	"github.com/radian-solusi/go-helpers/connections"
-	"github.com/radian-solusi/go-helpers/timeutil"
-	"github.com/radian-solusi/go-helpers/web"
+	"github.com/radian-solusi/microservice-helpers/config"
+	"github.com/radian-solusi/microservice-helpers/connections"
+	"github.com/radian-solusi/microservice-helpers/timeutil"
+	"github.com/radian-solusi/microservice-helpers/web"
 )
 
 type Helpers struct {

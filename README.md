@@ -1,6 +1,6 @@
-# go-helpers
+# microservice-helpers
 
-Shared Go helpers for Radian services.
+Shared Go helpers for Radian microservices.
 
 Packages: `config`, `connections`, `cryptoutil`, `helpers`, `mask`, `otp`, `phone`, `strutil`, `timeutil`, `validate`, and `web`.
 
@@ -9,23 +9,23 @@ Packages: `config`, `connections`, `cryptoutil`, `helpers`, `mask`, `otp`, `phon
 Add the module to a Go service:
 
 ```bash
-go get github.com/radian-solusi/go-helpers@latest
+go get github.com/radian-solusi/microservice-helpers@latest
 ```
 
 Then import only the focused packages the service needs:
 
 ```go
 import (
-    "github.com/radian-solusi/go-helpers/cryptoutil"
-    "github.com/radian-solusi/go-helpers/phone"
-    "github.com/radian-solusi/go-helpers/strutil"
+    "github.com/radian-solusi/microservice-helpers/cryptoutil"
+    "github.com/radian-solusi/microservice-helpers/phone"
+    "github.com/radian-solusi/microservice-helpers/strutil"
 )
 ```
 
 For compatibility with the investor `HelperInterface`, use the facade:
 
 ```go
-import "github.com/radian-solusi/go-helpers/helpers"
+import "github.com/radian-solusi/microservice-helpers/helpers"
 ```
 
 ## Focused package usage

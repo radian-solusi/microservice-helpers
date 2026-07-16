@@ -12,7 +12,7 @@ import (
 	"github.com/o1egl/paseto/v2"
 	"github.com/pquerna/otp/totp"
 
-	"github.com/radian-solusi/go-helpers/cryptoutil"
+	"github.com/radian-solusi/microservice-helpers/cryptoutil"
 )
 
 const preAuthTokenPrefix = "otp"

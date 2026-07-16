@@ -1,4 +1,4 @@
-module github.com/radian-solusi/go-helpers
+module github.com/radian-solusi/microservice-helpers
 
 go 1.25.3
 

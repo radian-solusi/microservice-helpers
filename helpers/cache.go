@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/radian-solusi/go-helpers/strutil"
+	"github.com/radian-solusi/microservice-helpers/strutil"
 )
 
 func (h *Helpers) SetCache(key string, value any, ttl int) error {

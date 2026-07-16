@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/radian-solusi/go-helpers/web"
+	"github.com/radian-solusi/microservice-helpers/web"
 )
 
 func writeConfig(t *testing.T, extra string) string {

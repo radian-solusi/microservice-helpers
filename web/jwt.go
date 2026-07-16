@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/radian-solusi/go-helpers/cryptoutil"
+	"github.com/radian-solusi/microservice-helpers/cryptoutil"
 )
 
 type JWT struct {

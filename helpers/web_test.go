@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/radian-solusi/go-helpers/web"
+	"github.com/radian-solusi/microservice-helpers/web"
 )
 
 func TestFacadeGinDelegations(t *testing.T) {
