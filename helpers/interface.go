@@ -29,6 +29,7 @@ type HelperInterface interface {
 	GetRedisClient() connections.Redis
 	GetPubSub() connections.GPubSub
 	GetMongoDB() connections.MongoDB
+	GetSFTPClient() connections.SFTP
 	SetCache(key string, value any, ttl int) error
 	GetCache(key string) (*string, error)
 	DeleteCache(key string) error

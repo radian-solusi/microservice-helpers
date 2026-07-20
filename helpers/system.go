@@ -42,6 +42,13 @@ func (h *Helpers) InitializeSystem() error {
 			h.mongo = m
 		}
 	}
+	if cfg.Sftp.Host != "" {
+		if sftp, err := h.factory.NewSFTP(cfg.Sftp); err != nil {
+			log.Println("sftp init error:", err)
+		} else {
+			h.sftp = sftp
+		}
+	}
 	if cfg.Otel.Enabled {
 		if tel, err := h.factory.NewTelemetry(context.Background(), cfg.Otel, h.IsProduction()); err != nil {
 			log.Println("telemetry init:", err)
@@ -57,6 +64,7 @@ func (h *Helpers) GetRedisClient() connections.Redis { return h.redis }
 func (h *Helpers) GetPubSub() connections.GPubSub    { return h.pubsub }
 func (h *Helpers) GetS3Client() connections.S3Client { return h.s3 }
 func (h *Helpers) GetMongoDB() connections.MongoDB   { return h.mongo }
+func (h *Helpers) GetSFTPClient() connections.SFTP   { return h.sftp }
 
 func (h *Helpers) SetGormProgressMode(enabled bool) {
 	if h.database != nil {

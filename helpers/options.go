@@ -26,6 +26,7 @@ type Helpers struct {
 	s3        connections.S3Client
 	mongo     connections.MongoDB
 	telemetry connections.Telemetry
+	sftp      connections.SFTP
 
 	client *web.Client
 

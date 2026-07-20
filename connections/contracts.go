@@ -75,11 +75,13 @@ type GPubSub interface {
 
 type SFTP interface {
 	Client() *sftp.Client
-	UploadFile(string, []byte, os.FileMode) error
-	DownloadFile(string) ([]byte, error)
-	DeleteFile(string) error
-	FileExists(string) (bool, error)
-	EnsureDir(string) error
+	UploadFile(remotePath string, data []byte, perm os.FileMode) error
+	DownloadFile(remotePath string) ([]byte, error)
+	// ListDir returns file names, excluding subdirectories, in the remote directory.
+	ListDir(remoteDir string) ([]string, error)
+	DeleteFile(remotePath string) error
+	FileExists(remotePath string) (bool, error)
+	EnsureDir(remoteDir string) error
 	Close() error
 	IsConnected() bool
 }
