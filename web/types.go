@@ -13,6 +13,8 @@ type ScopeAccess struct {
 	Name       string `json:"feature_name"`
 	Permission string `json:"permission"`
 	IsAllowed  bool   `json:"is_allowed"`
+	Method     string `json:"method"`
+	URL        string
 }
 
 type PayloadAuthorization struct {
