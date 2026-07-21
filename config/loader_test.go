@@ -81,3 +81,59 @@ func TestLoadFromEnvironmentValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestFindProjectRootDevelopment(t *testing.T) {
+	t.Setenv("GIN_MODE", "debug")
+
+	root := t.TempDir()
+	nested := filepath.Join(root, "internal", "services")
+
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(
+		filepath.Join(root, "go.mod"),
+		[]byte("module example.test\n"),
+		0o600,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := FindProjectRoot(nested)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result != root {
+		t.Fatalf("expected root %q, got %q", root, result)
+	}
+}
+
+func TestFindProjectRootProduction(t *testing.T) {
+	t.Setenv("GIN_MODE", "release")
+
+	root := t.TempDir()
+	nested := filepath.Join(root, "internal", "services")
+
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(
+		filepath.Join(root, "app"),
+		[]byte("binary-placeholder"),
+		0o755,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := FindProjectRoot(nested)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result != root {
+		t.Fatalf("expected root %q, got %q", root, result)
+	}
+}
