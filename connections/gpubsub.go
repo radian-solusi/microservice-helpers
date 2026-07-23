@@ -66,7 +66,7 @@ func (g *gPubSubWrapper) IsConnected() bool {
 	}
 	ctx, cancel := context.WithTimeout(g.ctx, 5*time.Second)
 	defer cancel()
-	topic := g.client.Topic("_connection_test")
+	topic := g.client.Topic("connection_test")
 	_, err := topic.Exists(ctx)
 	return err == nil
 }
