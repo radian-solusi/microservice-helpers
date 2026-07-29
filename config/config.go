@@ -76,6 +76,7 @@ type AppConfig struct {
 	OtpToken         string `toml:"otp_token"`
 	ValidateOverKsei bool   `toml:"validate_over_ksei"`
 	MFAUserTypes     []int  `toml:"mfa_user_types"`
+	FrontendURL      string `toml:"frontend_url"`
 }
 
 type MongoDBConfig struct {
