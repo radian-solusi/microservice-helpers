@@ -80,9 +80,10 @@ func (s *s3Wrapper) IsConnected() bool {
 	if s.client == nil {
 		return false
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	_, err := s.client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	_, err := s.ListFiles(ctx, "/")
 	return err == nil
 }
 func (s *s3Wrapper) Close() error { s.client = nil; return nil }
