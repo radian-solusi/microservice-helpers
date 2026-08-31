@@ -47,12 +47,16 @@ type CorsConfig struct {
 }
 
 type DatabaseConfig struct {
-	Type     DBType `toml:"type"`
-	Host     string `toml:"host"`
-	Port     int    `toml:"port"`
-	User     string `toml:"user"`
-	Password string `toml:"password"`
-	DBName   string `toml:"db_name"`
+	Type            DBType `toml:"type"`
+	Host            string `toml:"host"`
+	Port            int    `toml:"port"`
+	User            string `toml:"user"`
+	Password        string `toml:"password"`
+	DBName          string `toml:"db_name"`
+	MaxOpenConns    int    `toml:"max_open_conns"`
+	MaxIdleConns    int    `toml:"max_idle_conns"`
+	ConnMaxLifetime int    `toml:"conn_max_lifetime_minutes"`
+	ConnMaxIdleTime int    `toml:"conn_max_idle_time_minutes"`
 }
 
 type S3Config struct {

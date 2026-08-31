@@ -94,10 +94,10 @@ func NewDatabase(cfg helperconfig.DatabaseConfig) (Database, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get SQL database: %w", err)
 	}
-	sqlDB.SetMaxIdleConns(5)
-	sqlDB.SetMaxOpenConns(20)
-	sqlDB.SetConnMaxLifetime(time.Hour)
-	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
+	sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
+	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
+	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Minute)
+	sqlDB.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Minute)
 
 	if err := db.Use(otelgorm.NewPlugin()); err != nil {
 		return nil, fmt.Errorf("register otelgorm: %w", err)
