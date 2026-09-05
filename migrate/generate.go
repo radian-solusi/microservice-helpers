@@ -31,7 +31,7 @@ func GenerateFile(schema, name, outDir string) (string, error) {
 		return "", fmt.Errorf("create dir %q: %w", outDir, err)
 	}
 
-	content := fmt.Sprintf(migrationTemplate, migName, schema, migName)
+	content := fmt.Sprintf(migrationTemplate, schema, migName)
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		return "", fmt.Errorf("write file %q: %w", path, err)
 	}
