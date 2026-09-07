@@ -3,11 +3,12 @@ package timeutil
 import "time"
 
 const (
-	FormatDateTime     = "2006-01-02 15:04:05"
-	FormatDateTimeMS   = "2006-01-02 15:04:05.000"
-	FormatDateTimeISO  = "2006-01-02T15:04:05Z07:00"
-	FormatDate         = "2006-01-02"
-	FormatDateTimeFile = "20060102150405"
+	FormatDateTime         = "2006-01-02 15:04:05"
+	FormatDateTimeMS       = "2006-01-02 15:04:05.000"
+	FormatDateTimeISO      = "2006-01-02T15:04:05Z07:00"
+	FormatDateTimeTimezone = "2006-01-02T15:04:05-07:00"
+	FormatDate             = "2006-01-02"
+	FormatDateTimeFile     = "20060102150405"
 )
 
 // LoadLocation wraps time.LoadLocation, returning an error when name is
