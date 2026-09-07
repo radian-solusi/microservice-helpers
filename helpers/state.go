@@ -38,7 +38,6 @@ func (h *Helpers) GetUserActive(c *gin.Context, dataType *any) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	*dataType = h.userActive
-	return
 }
 
 func (h *Helpers) SetUserSession(c *gin.Context, sessionID string) {
