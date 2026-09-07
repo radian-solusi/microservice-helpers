@@ -96,11 +96,14 @@ func TestIsSREIpo(t *testing.T) {
 		sre  string
 		want bool
 	}{
-		{"AB1CD004", true},  // valid 004 code
-		{"AB1CD064", true},  // valid 064 code
-		{"AB1CD074", false}, // ebus code, not ipo
-		{"AB1CD123", false}, // unrelated code
-		{"12CD004", false},  // doesn't match pattern (no leading letters)
+		{"AB1CD00412", true},  // 004 at first 3 of last 5
+		{"AB1CD06499", true},  // 064 at first 3 of last 5
+		{"00412", true},       // exactly 5 chars
+		{"AB1CD07412", false}, // ebus code, not ipo
+		{"AB1CD12399", false}, // unrelated code
+		{"AB1CD004", false},   // 004 not positioned at last-5 offset
+		{"004", false},        // shorter than 5
+		{"", false},           // empty
 	}
 	for _, c := range cases {
 		if got := IsSREIpo(c.sre); got != c.want {
@@ -114,10 +117,13 @@ func TestIsSREEbus(t *testing.T) {
 		sre  string
 		want bool
 	}{
-		{"AB1CD074", true},  // valid ebus code
-		{"AB1CD004", false}, // ipo code, not ebus
-		{"AB1CD123", false}, // unrelated code
-		{"12CD074", false},  // doesn't match pattern
+		{"AB1CD07412", true},  // 074 at first 3 of last 5
+		{"07499", true},       // exactly 5 chars
+		{"AB1CD00412", false}, // ipo code, not ebus
+		{"AB1CD12399", false}, // unrelated code
+		{"AB1CD074", false},   // 074 not positioned at last-5 offset
+		{"074", false},        // shorter than 5
+		{"", false},           // empty
 	}
 	for _, c := range cases {
 		if got := IsSREEbus(c.sre); got != c.want {
