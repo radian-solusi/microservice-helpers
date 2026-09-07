@@ -91,6 +91,41 @@ func TestSafeHTML(t *testing.T) {
 	}
 }
 
+func TestIsSREIpo(t *testing.T) {
+	cases := []struct {
+		sre  string
+		want bool
+	}{
+		{"AB1CD004", true},  // valid 004 code
+		{"AB1CD064", true},  // valid 064 code
+		{"AB1CD074", false}, // ebus code, not ipo
+		{"AB1CD123", false}, // unrelated code
+		{"12CD004", false},  // doesn't match pattern (no leading letters)
+	}
+	for _, c := range cases {
+		if got := IsSREIpo(c.sre); got != c.want {
+			t.Errorf("IsSREIpo(%q) = %v, want %v", c.sre, got, c.want)
+		}
+	}
+}
+
+func TestIsSREEbus(t *testing.T) {
+	cases := []struct {
+		sre  string
+		want bool
+	}{
+		{"AB1CD074", true},  // valid ebus code
+		{"AB1CD004", false}, // ipo code, not ebus
+		{"AB1CD123", false}, // unrelated code
+		{"12CD074", false},  // doesn't match pattern
+	}
+	for _, c := range cases {
+		if got := IsSREEbus(c.sre); got != c.want {
+			t.Errorf("IsSREEbus(%q) = %v, want %v", c.sre, got, c.want)
+		}
+	}
+}
+
 func TestPasswordComplexity(t *testing.T) {
 	cases := []struct {
 		pw      string
