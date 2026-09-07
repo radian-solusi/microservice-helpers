@@ -19,11 +19,15 @@ func TestContextAccessors(t *testing.T) {
 		t.Fatal("session")
 	}
 	SetUserActiveCtx(ctx, PayloadAuthorization{UserID: "u1"})
-	if GetUserActiveCtx(ctx).UserID != "u1" {
+	var got any
+	GetUserActiveCtx(ctx, &got)
+	if got.(PayloadAuthorization).UserID != "u1" {
 		t.Fatal("user")
 	}
 	empty, _ := gin.CreateTestContext(httptest.NewRecorder())
-	if GetUserActiveCtx(empty).UserID != "" {
+	var missing any
+	GetUserActiveCtx(empty, &missing)
+	if missing != nil {
 		t.Fatal("missing should be zero")
 	}
 }

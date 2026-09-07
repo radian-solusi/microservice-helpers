@@ -8,20 +8,16 @@ const (
 	keyUserSession = "session_user"
 )
 
-func SetUserActiveCtx(c *gin.Context, user PayloadAuthorization) {
+func SetUserActiveCtx(c *gin.Context, user any) {
 	c.Set(keyUserActive, user)
 }
 
-func GetUserActiveCtx(c *gin.Context) PayloadAuthorization {
+func GetUserActiveCtx(c *gin.Context, dataType *any) {
 	v, ok := c.Get(keyUserActive)
 	if !ok {
-		return PayloadAuthorization{}
+		return
 	}
-	u, ok := v.(PayloadAuthorization)
-	if !ok {
-		return PayloadAuthorization{}
-	}
-	return u
+	*dataType = v
 }
 
 func SetTokenActiveCtx(c *gin.Context, token string) {

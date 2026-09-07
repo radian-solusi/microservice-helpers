@@ -14,7 +14,9 @@ func TestFacadeGinDelegations(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(rec)
 	h := NewHelpers()
 	h.SetUserActiveCtx(ctx, web.PayloadAuthorization{UserID: "u"})
-	if h.GetUserActiveCtx(ctx).UserID != "u" {
+	var got any
+	h.GetUserActiveCtx(ctx, &got)
+	if got.(web.PayloadAuthorization).UserID != "u" {
 		t.Fatal("context")
 	}
 	h.SendResponseData(ctx, web.Success, "ok", nil)

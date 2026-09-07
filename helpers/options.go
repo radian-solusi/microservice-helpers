@@ -32,7 +32,7 @@ type Helpers struct {
 
 	mu          sync.RWMutex
 	tokenActive string
-	userActive  web.PayloadAuthorization
+	userActive  any
 	userSession string
 	baseURL     string
 }

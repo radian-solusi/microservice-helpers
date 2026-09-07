@@ -22,29 +22,47 @@ func (h *Helpers) SetTokenActive(token string) {
 }
 func (h *Helpers) GetTokenActive() string { h.mu.RLock(); defer h.mu.RUnlock(); return h.tokenActive }
 
-func (h *Helpers) SetUserActive(user web.PayloadAuthorization) {
+func (h *Helpers) SetUserActive(c *gin.Context, user any) {
+	if c != nil {
+		h.SetUserActiveCtx(c, user)
+	}
 	h.mu.Lock()
 	h.userActive = user
 	h.mu.Unlock()
 }
-func (h *Helpers) GetUserActive() web.PayloadAuthorization {
+func (h *Helpers) GetUserActive(c *gin.Context, dataType *any) {
+	if c != nil {
+		h.GetUserActiveCtx(c, dataType)
+		return
+	}
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	return h.userActive
+	*dataType = h.userActive
+	return
 }
 
-func (h *Helpers) SetUserSession(sessionID string) {
+func (h *Helpers) SetUserSession(c *gin.Context, sessionID string) {
+	if c != nil {
+		h.SetUserSessionCtx(c, sessionID)
+	}
 	h.mu.Lock()
 	h.userSession = sessionID
 	h.mu.Unlock()
 }
-func (h *Helpers) GetUserSession() string { h.mu.RLock(); defer h.mu.RUnlock(); return h.userSession }
+func (h *Helpers) GetUserSession(c *gin.Context) string {
+	if c != nil {
+		return h.GetUserSessionCtx(c)
+	}
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.userSession
+}
 
-func (h *Helpers) SetUserActiveCtx(c *gin.Context, user web.PayloadAuthorization) {
+func (h *Helpers) SetUserActiveCtx(c *gin.Context, user any) {
 	web.SetUserActiveCtx(c, user)
 }
-func (h *Helpers) GetUserActiveCtx(c *gin.Context) web.PayloadAuthorization {
-	return web.GetUserActiveCtx(c)
+func (h *Helpers) GetUserActiveCtx(c *gin.Context, dataType *any) {
+	web.GetUserActiveCtx(c, dataType)
 }
 func (h *Helpers) SetTokenActiveCtx(c *gin.Context, token string) {
 	web.SetTokenActiveCtx(c, token)

@@ -57,12 +57,12 @@ type HelperInterface interface {
 	GetMainConfig() config.MainConfig
 	SetTokenActive(token string)
 	GetTokenActive() string
-	SetUserActive(user web.PayloadAuthorization)
-	GetUserActive() web.PayloadAuthorization
-	SetUserSession(sessionID string)
-	GetUserSession() string
-	SetUserActiveCtx(c *gin.Context, user web.PayloadAuthorization)
-	GetUserActiveCtx(c *gin.Context) web.PayloadAuthorization
+	SetUserActive(c *gin.Context, user any)
+	GetUserActive(c *gin.Context, dataType *any)
+	SetUserSession(c *gin.Context, sessionID string)
+	GetUserSession(c *gin.Context) string
+	SetUserActiveCtx(c *gin.Context, user any)
+	GetUserActiveCtx(c *gin.Context, dataType *any)
 	SetTokenActiveCtx(c *gin.Context, token string)
 	GetTokenActiveCtx(c *gin.Context) string
 	SetUserSessionCtx(c *gin.Context, sessionID string)

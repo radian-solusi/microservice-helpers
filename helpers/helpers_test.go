@@ -66,8 +66,10 @@ func TestStateAndJWT(t *testing.T) {
 	root := writeConfig(t, "")
 	h := NewHelpers(WithConfigStart(root), WithEnvLookup(fileConfigLookup))
 	h.SetTokenActive("tok")
-	h.SetUserActive(web.PayloadAuthorization{UserID: "u1"})
-	if h.GetTokenActive() != "tok" || h.GetUserActive().UserID != "u1" {
+	h.SetUserActive(nil, web.PayloadAuthorization{UserID: "u1"})
+	var gotUser any
+	h.GetUserActive(nil, &gotUser)
+	if h.GetTokenActive() != "tok" || gotUser.(web.PayloadAuthorization).UserID != "u1" {
 		t.Fatal("state")
 	}
 	token, err := h.GenerateJWTToken(map[string]string{"user_id": "u1"}, time.Now().Add(time.Hour))
