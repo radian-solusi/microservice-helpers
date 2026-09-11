@@ -163,3 +163,21 @@ err = client.UploadFile(context.Background(), "docs/a.txt", data, "text/plain")
 ```
 
 Local object keys reject absolute paths and `..` traversal.
+
+## GCS storage
+
+GCS is accessed through its S3-compatible XML API (`https://storage.googleapis.com`) using a
+[Cloud Storage HMAC key](https://cloud.google.com/storage/docs/authentication/hmackeys) — the same
+`connections.NewS3Client` / AWS SDK path used for `aws`/`minio`, just pointed at Google's endpoint.
+
+```toml
+[s3]
+provider = "gcs"
+bucket_name = "my-bucket"
+access_key_id = "GOOG..."       # HMAC access ID
+secret_access_key = "..."       # HMAC secret
+# endpoint = "http://127.0.0.1:4443" # optional; defaults to https://storage.googleapis.com (e.g. fake-gcs-server)
+# region   = "us-east-1"             # optional; defaults to "auto"
+```
+
+Path-style addressing is used automatically. `GetFileURL` returns a SigV4 presigned URL, same as `aws`/`minio`.

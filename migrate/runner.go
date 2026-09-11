@@ -32,8 +32,8 @@ func Run(db *gorm.DB, schema string) (applied []string, err error) {
 				return err
 			}
 			return tx.Table("schema_migrations").Create(map[string]any{
-				"migration":  m.Name,
-				"batch":      batch,
+				"migration":   m.Name,
+				"batch":       batch,
 				"executed_at": time.Now(),
 			}).Error
 		})

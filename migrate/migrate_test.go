@@ -15,7 +15,7 @@ func openTestDB(t *testing.T) *gorm.DB {
 		t.Fatal(err)
 	}
 	// Mimics AutoMigrate having created the tracking table beforehand.
-	if err := db.Exec(`CREATE TABLE schema_migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, migration TEXT NOT NULL UNIQUE, batch INTEGER NOT NULL)`).Error; err != nil {
+	if err := db.Exec(`CREATE TABLE schema_migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, migration TEXT NOT NULL UNIQUE, batch INTEGER NOT NULL, executed_at DATETIME NOT NULL)`).Error; err != nil {
 		t.Fatal(err)
 	}
 	return db
@@ -42,6 +42,12 @@ func TestRunAppliesInOrderOnce(t *testing.T) {
 	}
 	if len(applied) != 2 || order[0] != "a" || order[1] != "b" {
 		t.Fatalf("expected sorted a,b, got %v (order=%v)", applied, order)
+	}
+
+	var unset int64
+	db.Table("schema_migrations").Where("executed_at IS NULL").Count(&unset)
+	if unset != 0 {
+		t.Fatalf("executed_at must be recorded, %d rows unset", unset)
 	}
 
 	// Second run: nothing pending, idempotent.

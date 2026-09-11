@@ -17,9 +17,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go/middleware"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
 
 	helperconfig "github.com/radian-solusi/microservice-helpers/config"
 )
+
+// gcsEndpoint is the Cloud Storage S3-compatible XML API endpoint.
+// https://cloud.google.com/storage/docs/aws-simple-migration
+const gcsEndpoint = "https://storage.googleapis.com"
 
 type s3Wrapper struct {
 	client   *s3.Client
@@ -50,24 +56,58 @@ func NewS3Client(ctx context.Context, cfg helperconfig.S3Config) (S3Client, erro
 		return &s3Wrapper{provider: helperconfig.S3ProviderLocal, root: root, bucket: cfg.BucketName, pathURL: "/files"}, nil
 	}
 
+	region := cfg.Region
+	endpoint := cfg.Endpoint
+	if cfg.Provider == helperconfig.S3ProviderGCS {
+		if region == "" {
+			region = "auto"
+		}
+		if endpoint == "" {
+			endpoint = gcsEndpoint
+		}
+	}
+
 	awsCfg, err := awsconfig.LoadDefaultConfig(ctx,
-		awsconfig.WithRegion(cfg.Region),
+		awsconfig.WithRegion(region),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKeyID, cfg.SecretAccessKey, "")),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("load AWS config: %w", err)
 	}
 
-	var client *s3.Client
-	if cfg.Endpoint != "" {
-		client = s3.NewFromConfig(awsCfg, func(o *s3.Options) {
-			o.BaseEndpoint = aws.String(cfg.Endpoint)
+	w := &s3Wrapper{bucket: cfg.BucketName, provider: cfg.Provider, pathURL: "/images"}
+
+	if endpoint != "" {
+		w.client = s3.NewFromConfig(awsCfg, func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(endpoint)
 			o.UsePathStyle = true
+			if cfg.Provider == helperconfig.S3ProviderGCS {
+				// GCS XML API does not support the SDK's optional flexible checksums.
+				o.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
+				o.ResponseChecksumValidation = aws.ResponseChecksumValidationWhenRequired
+				o.APIOptions = append(o.APIOptions, w.removeGCSAcceptEncoding)
+			}
 		})
 	} else {
-		client = s3.NewFromConfig(awsCfg)
+		w.client = s3.NewFromConfig(awsCfg)
 	}
-	return &s3Wrapper{client: client, bucket: cfg.BucketName, provider: cfg.Provider, pathURL: "/images"}, nil
+	return w, nil
+}
+
+// removeGCSAcceptEncoding strips Accept-Encoding before SigV4 signing; GCS's XML API
+// rejects requests that include it among the signed headers.
+func (s *s3Wrapper) removeGCSAcceptEncoding(stack *middleware.Stack) error {
+	return stack.Finalize.Insert(middleware.FinalizeMiddlewareFunc(
+		"GCSRemoveAcceptEncoding",
+		func(ctx context.Context, input middleware.FinalizeInput, next middleware.FinalizeHandler) (
+			middleware.FinalizeOutput, middleware.Metadata, error,
+		) {
+			if request, ok := input.Request.(*smithyhttp.Request); ok {
+				request.Header.Del("Accept-Encoding")
+			}
+			return next.HandleFinalize(ctx, input)
+		},
+	), "Signing", middleware.Before)
 }
 
 func (s *s3Wrapper) Client() *s3.Client   { return s.client }

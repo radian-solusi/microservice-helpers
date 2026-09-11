@@ -14,6 +14,7 @@ const (
 	S3ProviderAWS   S3Provider = "aws"
 	S3ProviderMinio S3Provider = "minio"
 	S3ProviderLocal S3Provider = "local"
+	S3ProviderGCS   S3Provider = "gcs"
 )
 
 type SftpConfig struct {
