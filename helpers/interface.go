@@ -87,6 +87,9 @@ type HelperInterface interface {
 	ParsingJWT(token string, payload any) error
 	FormatValidationError(err error) string
 	FormatValidationErrorFields(err error) map[string]string
+	ValidationErrorResponse(ctx *gin.Context, err error)
+	ValidationErrorResponseWithRef(ctx *gin.Context, err error, ref any)
+	GetRequestLanguage(ctx *gin.Context) string
 	SetupLogging()
 	ContainString(s, substr string) bool
 	ConvertStringToInt64(s string) int64

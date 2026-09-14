@@ -1,6 +1,10 @@
 package web
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+
+	"github.com/radian-solusi/microservice-helpers/validate"
+)
 
 const (
 	NoCode              = 0
@@ -56,6 +60,28 @@ func ErrorResponse(ctx *gin.Context, code int, message string) {
 		code = Unauthorized
 	}
 	SendResponse(ctx, ResponseDefault{Status: false, Code: code, Data: nil, Message: message})
+	ctx.Abort()
+}
+
+// ValidationErrorResponse sends a 422 with a nested per-field message map
+// translated to the request language. Non-validation errors yield an empty
+// data map and the localized generic message — raw details never leak.
+func ValidationErrorResponse(ctx *gin.Context, err error) {
+	ValidationErrorResponseWithRef(ctx, err, nil)
+}
+
+// ValidationErrorResponseWithRef is ValidationErrorResponse with the bound
+// request struct as ref, so field paths honour its json/form tags and
+// embedded-struct flattening.
+func ValidationErrorResponseWithRef(ctx *gin.Context, err error, ref any) {
+	lang := GetLanguageCtx(ctx)
+	data := validate.FormatValidationErrorDataWithRef(err, lang, ref)
+	SendResponse(ctx, ResponseDefault{
+		Status:  false,
+		Code:    ValidationError,
+		Data:    data,
+		Message: validate.FormatValidationSummary(err, lang),
+	})
 	ctx.Abort()
 }
 

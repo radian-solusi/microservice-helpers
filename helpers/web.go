@@ -22,6 +22,15 @@ func (h *Helpers) ErrorMessage(code int) string { return web.ErrorMessage(code) 
 func (h *Helpers) HandleErrorResponse(ctx *gin.Context, err error) {
 	web.HandleErrorResponse(ctx, err, h.errorCodeMapper)
 }
+func (h *Helpers) ValidationErrorResponse(ctx *gin.Context, err error) {
+	web.ValidationErrorResponse(ctx, err)
+}
+func (h *Helpers) ValidationErrorResponseWithRef(ctx *gin.Context, err error, ref any) {
+	web.ValidationErrorResponseWithRef(ctx, err, ref)
+}
+func (h *Helpers) GetRequestLanguage(ctx *gin.Context) string {
+	return web.GetLanguageCtx(ctx)
+}
 
 func (h *Helpers) newJWT() (*web.JWT, error) {
 	return web.NewJWT([]byte(h.GetMainConfig().App.AppKey))

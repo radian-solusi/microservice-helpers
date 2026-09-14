@@ -6,7 +6,22 @@ const (
 	keyUserActive  = "user_active"
 	keyTokenActive = "token_active"
 	keyUserSession = "session_user"
+	keyLanguage    = "request_language"
 )
+
+// SetLanguageCtx stores the resolved request language for downstream handlers.
+func SetLanguageCtx(c *gin.Context, lang string) {
+	c.Set(keyLanguage, lang)
+}
+
+// GetLanguageCtx returns the request language, defaulting to "en" when unset.
+func GetLanguageCtx(c *gin.Context) string {
+	lang := c.GetString(keyLanguage)
+	if lang == "" {
+		return "en"
+	}
+	return lang
+}
 
 func SetUserActiveCtx(c *gin.Context, user any) {
 	c.Set(keyUserActive, user)
