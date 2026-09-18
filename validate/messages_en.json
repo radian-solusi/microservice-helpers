@@ -12,6 +12,7 @@
   "numeric": "{0} must be numeric",
   "datetime": "{0} is not a valid date/time",
   "eqfield": "{0} must match {1}",
+  "gtefield": "{0} must not be earlier than {1}",
   "required_without": "either {0} or {1} is required",
   "file_required": "{0} file is required",
   "file_too_large": "{0} must not exceed {1}",

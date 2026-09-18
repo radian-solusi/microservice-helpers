@@ -12,6 +12,7 @@
   "numeric": "{0} harus berupa angka",
   "datetime": "{0} bukan tanggal/waktu yang valid",
   "eqfield": "{0} harus sama dengan {1}",
+  "gtefield": "{0} tidak boleh lebih awal dari {1}",
   "required_without": "{0} atau {1} wajib diisi salah satu",
   "file_required": "berkas {0} wajib diunggah",
   "file_too_large": "{0} tidak boleh melebihi {1}",
