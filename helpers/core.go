@@ -153,6 +153,33 @@ func (h *Helpers) resolveKey(key *string) []byte {
 	return []byte(h.GetMainConfig().App.AppKey)
 }
 
+// legacyKey returns the e-IPO secret key, falling back to AppKey when
+// legacy_app_key is not configured (backward compatible).
+func (h *Helpers) legacyKey() (key []byte, configured bool) {
+	if k := h.GetMainConfig().App.LegacyAppKey; k != "" {
+		return []byte(k), true
+	}
+	return []byte(h.GetMainConfig().App.AppKey), false
+}
+
+// DecryptLegacy decrypts data written by e-IPO using legacy_app_key. Both wire
+// formats are accepted, same as Decrypt.
+func (h *Helpers) DecryptLegacy(ciphertextBase64 string) ([]byte, error) {
+	key, _ := h.legacyKey()
+	k := string(key)
+	return h.Decrypt(ciphertextBase64, &k)
+}
+
+// EncryptLegacy writes the Yii2 format with legacy_app_key so e-IPO can read
+// the data back. Without legacy_app_key it behaves exactly like Encrypt.
+func (h *Helpers) EncryptLegacy(plaintext []byte) (string, error) {
+	key, configured := h.legacyKey()
+	if !configured {
+		return cryptoutil.EncryptLegacyCBC(plaintext, key)
+	}
+	return cryptoutil.EncryptYii2Legacy(plaintext, key, "")
+}
+
 // --- OTP delegations ---
 
 func (h *Helpers) GenerateTOTPSecret(accountName string) (string, string, error) {

@@ -72,7 +72,10 @@ type S3Config struct {
 }
 
 type AppConfig struct {
-	AppKey           string `toml:"app_key"`
+	AppKey string `toml:"app_key"`
+	// LegacyAppKey is the e-IPO (PHP) secretKey used for data encrypted outside
+	// the Go stack. Kept separate from AppKey, which signs tokens and must not change.
+	LegacyAppKey     string `toml:"legacy_app_key"`
 	LimitData        int    `toml:"limit_data"`
 	SessionMode      string `toml:"session_mode"`
 	OtpEnabled       bool   `toml:"otp_enabled"`
