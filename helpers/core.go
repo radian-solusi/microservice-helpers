@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/radian-solusi/microservice-helpers/config"
@@ -128,8 +129,22 @@ func (h *Helpers) ErrorFatal(err error) {
 func (h *Helpers) Encrypt(plaintext []byte, key *string) (string, error) {
 	return cryptoutil.EncryptLegacyCBC(plaintext, h.resolveKey(key))
 }
+
+// Decrypt reads both wire formats in use: the Go-native legacy CBC format and
+// the Yii2 Security::encryptByKey format written by e-IPO (PHP). The Go format
+// is tried first; its structure check rejects Yii2 payloads, so there is no
+// risk of returning garbage from the wrong parser.
 func (h *Helpers) Decrypt(ciphertextBase64 string, key *string) ([]byte, error) {
-	return cryptoutil.DecryptLegacyCBC(ciphertextBase64, h.resolveKey(key))
+	resolved := h.resolveKey(key)
+	plaintext, nativeErr := cryptoutil.DecryptLegacyCBC(ciphertextBase64, resolved)
+	if nativeErr == nil {
+		return plaintext, nil
+	}
+	plaintext, yiiErr := cryptoutil.DecryptYii2Legacy(ciphertextBase64, resolved, "")
+	if yiiErr == nil {
+		return plaintext, nil
+	}
+	return nil, fmt.Errorf("decrypt: go-native format: %v; yii2 format: %w", nativeErr, yiiErr)
 }
 func (h *Helpers) resolveKey(key *string) []byte {
 	if key != nil {
