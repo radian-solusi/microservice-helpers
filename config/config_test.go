@@ -6,6 +6,23 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+func TestMainConfigOrderImportSubscription(t *testing.T) {
+	const input = `
+[google_pubsub]
+project_id = "proj"
+
+[google_pubsub.subscriptions]
+order_imports = "sub-x"
+`
+	var cfg MainConfig
+	if _, err := toml.Decode(input, &cfg); err != nil {
+		t.Fatalf("decode config: %v", err)
+	}
+	if got := cfg.GPubSub.Subscriptions["order_imports"]; got != "sub-x" {
+		t.Fatalf("GPubSub.Subscriptions[%q] = %q, want %q", "order_imports", got, "sub-x")
+	}
+}
+
 func TestMainConfigDecodeUnion(t *testing.T) {
 	const input = `
 [app]

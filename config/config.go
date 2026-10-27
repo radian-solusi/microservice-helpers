@@ -41,6 +41,7 @@ type SftpConfig struct {
 type GPubSubConfig struct {
 	ProjectID       string            `toml:"project_id"`
 	Topics          map[string]string `toml:"topics"`
+	Subscriptions   map[string]string `toml:"subscriptions"`
 	SubscriptionID  string            `toml:"subscription_id"`
 	CredentialsFile string            `toml:"credentials_file"`
 	EmulatorHost    string            `toml:"emulator_host"`
