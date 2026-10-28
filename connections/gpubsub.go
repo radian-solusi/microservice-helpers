@@ -20,6 +20,9 @@ type gPubSubWrapper struct {
 	projectID        string
 	cancelFuncs      map[string]context.CancelFunc
 	mu               sync.Mutex
+	topicMu          sync.Mutex
+	topics           map[string]topicHandle
+	openTopic        func(id string) topicHandle
 	messagesReceived int64
 	messagesAcked    int64
 	messagesNacked   int64
@@ -30,6 +33,7 @@ func NewGPubSub(ctx context.Context, cfg helperconfig.GPubSubConfig) (GPubSub, e
 	wrapper := &gPubSubWrapper{
 		ctx:         ctx,
 		cancelFuncs: make(map[string]context.CancelFunc),
+		topics:      make(map[string]topicHandle),
 	}
 
 	if cfg.ProjectID == "" {
@@ -55,7 +59,54 @@ func NewGPubSub(ctx context.Context, cfg helperconfig.GPubSubConfig) (GPubSub, e
 
 	wrapper.client = client
 	wrapper.projectID = cfg.ProjectID
+	wrapper.openTopic = func(id string) topicHandle { return realTopic{client.Topic(id)} }
 	return wrapper, nil
+}
+
+// topicHandle is the slice of *pubsub.Topic that Publish needs; it lets the
+// topic cache be tested without a Pub/Sub server.
+type topicHandle interface {
+	Exists(ctx context.Context) (bool, error)
+	Publish(ctx context.Context, msg *pubsub.Message) (string, error)
+	Stop()
+}
+
+type realTopic struct{ *pubsub.Topic }
+
+func (t realTopic) Publish(ctx context.Context, msg *pubsub.Message) (string, error) {
+	return t.Topic.Publish(ctx, msg).Get(ctx)
+}
+
+// topic returns the cached handle for topicID. Exists is an admin RPC, so it
+// runs once per topic; a missing topic is not cached and is re-checked on the
+// next publish.
+func (g *gPubSubWrapper) topic(ctx context.Context, topicID string) (topicHandle, error) {
+	g.topicMu.Lock()
+	defer g.topicMu.Unlock()
+	if t, ok := g.topics[topicID]; ok {
+		return t, nil
+	}
+	t := g.openTopic(topicID)
+	exists, err := t.Exists(ctx)
+	if err != nil {
+		t.Stop()
+		return nil, fmt.Errorf("check topic existence: %w", err)
+	}
+	if !exists {
+		t.Stop()
+		return nil, fmt.Errorf("topic %s does not exist", topicID)
+	}
+	g.topics[topicID] = t
+	return t, nil
+}
+
+func (g *gPubSubWrapper) stopTopics() {
+	g.topicMu.Lock()
+	defer g.topicMu.Unlock()
+	for id, t := range g.topics {
+		t.Stop()
+		delete(g.topics, id)
+	}
 }
 
 func (g *gPubSubWrapper) Client() *pubsub.Client { return g.client }
@@ -75,19 +126,13 @@ func (g *gPubSubWrapper) Publish(ctx context.Context, topicID string, data []byt
 	if g.client == nil {
 		return "", errors.New("pubsub client not connected")
 	}
-	topic := g.client.Topic(topicID)
-	defer topic.Stop()
-
-	exists, err := topic.Exists(ctx)
+	topic, err := g.topic(ctx, topicID)
 	if err != nil {
-		return "", fmt.Errorf("check topic existence: %w", err)
+		return "", err
 	}
-	if !exists {
-		return "", fmt.Errorf("topic %s does not exist", topicID)
-	}
-
-	result := topic.Publish(ctx, &pubsub.Message{Data: data, Attributes: attributes})
-	messageID, err := result.Get(ctx)
+	// ponytail: result.Get stays so callers can retry a failed publish; cost
+	// is one ack wait per message. Drop only if a caller needs fire-and-forget.
+	messageID, err := topic.Publish(ctx, &pubsub.Message{Data: data, Attributes: attributes})
 	if err != nil {
 		return "", fmt.Errorf("publish message: %w", err)
 	}
@@ -253,5 +298,6 @@ func (g *gPubSubWrapper) Close() error {
 		delete(g.cancelFuncs, id)
 	}
 	g.mu.Unlock()
+	g.stopTopics()
 	return g.client.Close()
 }
