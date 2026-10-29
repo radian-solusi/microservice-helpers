@@ -2,13 +2,19 @@ package connections
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	helperconfig "github.com/radian-solusi/microservice-helpers/config"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/oauth"
 )
 
 const (
@@ -81,4 +87,25 @@ func newResource(ctx context.Context, serviceName, serviceVersion, projectID str
 		attrs = append(attrs, attribute.String("gcp.project_id", projectID))
 	}
 	return resource.New(ctx, resource.WithAttributes(attrs...))
+}
+
+func newTraceExporter(ctx context.Context, t exporterTarget, projectID string) (sdktrace.SpanExporter, error) {
+	opts := []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint(t.Endpoint),
+		otlptracegrpc.WithTimeout(10 * time.Second),
+	}
+	if t.Insecure {
+		opts = append(opts, otlptracegrpc.WithInsecure())
+	}
+	if t.GoogleAuth {
+		creds, err := oauth.NewApplicationDefault(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("otel: google ADC: %w", err)
+		}
+		opts = append(opts, otlptracegrpc.WithDialOption(grpc.WithPerRPCCredentials(creds)))
+		if projectID != "" {
+			opts = append(opts, otlptracegrpc.WithHeaders(map[string]string{"x-goog-user-project": projectID}))
+		}
+	}
+	return otlptracegrpc.New(ctx, opts...)
 }
