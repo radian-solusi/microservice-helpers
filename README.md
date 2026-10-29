@@ -147,6 +147,29 @@ jwtToken, err := h.GenerateJWTToken(
 
 `GenderToString` and typed publisher adapters remain service-owned because they depend on domain constants and event types. Domain error mapping is injected with `WithErrorCodeMapper`.
 
+### Telemetry (OpenTelemetry)
+
+Traces are exported with OTLP gRPC. Default target is `telemetry.googleapis.com:443` using Application Default Credentials (Workload Identity / runtime service account). JSON key files are not used. `endpoint` and `insecure` are optional, for pointing to an OTel Collector.
+
+```toml
+[opentelemetry]
+enabled = true
+service_name = "my-service"
+service_version = "1.0.0"
+gcp_project_id = "my-gcp-project"   # fallback: env GOOGLE_CLOUD_PROJECT
+# endpoint = ""      # opsional: OTLP gRPC host:port (mis. "otel-collector:4317"); kosong = telemetry.googleapis.com:443
+# insecure = false   # opsional: true = gRPC tanpa TLS (hanya untuk collector internal); diabaikan untuk Google
+```
+
+| Mode | Target | Project ID | Result |
+|---|---|---|---|
+| Dev (`isProduction=false`) | any | any | Tracer provider only, no exporter, no network |
+| Production | Google (`endpoint` empty or `telemetry.googleapis.com`) | empty | No exporter, no error |
+| Production | Google | set | OTLP gRPC to `telemetry.googleapis.com:443`, TLS, ADC per-RPC credentials, header `x-goog-user-project`, resource `gcp.project_id`. Missing ADC returns an error (logged by `InitializeSystem`) |
+| Production | Collector (non-Google `endpoint`) | any | OTLP gRPC to `endpoint` (default port `4317`), no Google credentials, TLS unless `insecure = true`. `gcp.project_id` resource attribute only when project ID is set |
+
+GCP prerequisite: `telemetry.googleapis.com` must be enabled, and the runtime service account needs `roles/telemetry.writer` and `roles/serviceusage.serviceUsageConsumer`. Without them exports fail (`PermissionDenied` / `SERVICE_DISABLED`) and traces are lost.
+
 ## Local storage
 
 Use the S3-compatible API with local storage during development:
