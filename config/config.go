@@ -154,6 +154,8 @@ type OtelConfig struct {
 	ServiceName    string `toml:"service_name"`
 	ServiceVersion string `toml:"service_version"`
 	GCPProjectID   string `toml:"gcp_project_id"`
+	Endpoint       string `toml:"endpoint"` // optional OTLP gRPC host:port; empty = telemetry.googleapis.com:443
+	Insecure       bool   `toml:"insecure"` // plaintext gRPC; ignored for Google endpoint
 }
 
 type RecaptchaConfig struct {
